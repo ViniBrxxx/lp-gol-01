@@ -39,7 +39,16 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <a href="#cadastro" className="inline-flex items-center gap-2 hover:text-[#F37021]">
+              <a
+                href="#cadastro-mobile"
+                className="inline-flex items-center gap-2 hover:text-[#F37021] lg:hidden"
+              >
+                <Mail size={14} /> Fale com um consultor
+              </a>
+              <a
+                href="#cadastro"
+                className="hidden items-center gap-2 hover:text-[#F37021] lg:inline-flex"
+              >
                 <Mail size={14} /> Fale com um consultor
               </a>
             </li>

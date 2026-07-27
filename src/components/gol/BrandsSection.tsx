@@ -59,7 +59,10 @@ export function BrandsSection() {
         </div>
 
         <div className="mt-10 flex justify-center">
-          <a href="#cadastro" className="btn-cta">
+          <a href="#cadastro-mobile" className="btn-cta lg:hidden">
+            Ver catálogo <ArrowRight size={18} />
+          </a>
+          <a href="#cadastro" className="btn-cta hidden lg:inline-flex">
             Ver catálogo <ArrowRight size={18} />
           </a>
         </div>

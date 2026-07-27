@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/gol/Header";
 import { Hero } from "@/components/gol/Hero";
+import { AboutCarousel } from "@/components/gol/AboutCarousel";
 import { CategoryCards } from "@/components/gol/CategoryCards";
 import { BrandsSection } from "@/components/gol/BrandsSection";
 import { PositioningSection } from "@/components/gol/PositioningSection";
 import { HowItWorks } from "@/components/gol/HowItWorks";
-import { LeadForm } from "@/components/gol/LeadForm";
 import { Footer } from "@/components/gol/Footer";
+import { LeadForm } from "@/components/gol/LeadForm";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -61,11 +62,19 @@ function Index() {
     <main className="min-h-screen bg-white text-[#071E42]">
       <Header />
       <Hero />
+      <AboutCarousel />
       <BrandsSection />
       <CategoryCards />
       <PositioningSection />
       <HowItWorks />
-      <LeadForm />
+      <section className="bg-white px-5 py-14 sm:px-8 sm:py-20 lg:hidden">
+        <div className="mx-auto max-w-2xl">
+          <LeadForm embedded sectionId="cadastro-mobile" />
+        </div>
+      </section>
+      <div className="hidden lg:block">
+        <LeadForm sectionId="cadastro-final" />
+      </div>
       <Footer />
     </main>
   );

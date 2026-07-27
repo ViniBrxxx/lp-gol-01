@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import { z } from "zod";
+import { submitLeadToCrm } from "../../lib/lead-submit";
 
 const UTM_KEYS = [
   "utm_source",
@@ -12,6 +13,12 @@ const UTM_KEYS = [
 ] as const;
 type UtmKey = (typeof UTM_KEYS)[number];
 
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
 const SEGMENTOS = [
   "Loja de Calçados",
   "Supermercado / Mercadinho",
@@ -21,35 +28,18 @@ const SEGMENTOS = [
   "Atacado / Distribuidor",
   "Outro",
 ];
+const FAIXAS_INVESTIMENTO = [
+  "Até R$ 5 mil",
+  "De R$ 5 mil a R$ 10 mil",
+  "De R$ 10 mil a R$ 20 mil",
+  "Acima de R$ 20 mil",
+] as const;
+const LINHAS_CALCADOS = ["Feminino", "Masculino", "Infantil", "Esportivo"] as const;
 const ESTADOS = [
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-];
+  { uf: "PI", nome: "Piauí", codigoIbge: 22 },
+  { uf: "MA", nome: "Maranhão", codigoIbge: 21 },
+  { uf: "TO", nome: "Tocantins", codigoIbge: 17 },
+] as const;
 
 function useUtms() {
   const [utms, setUtms] = useState<Record<UtmKey, string>>(
@@ -97,8 +87,17 @@ function maskCNPJ(value: string) {
 
 const schema = z.object({
   segmento: z.string().trim().min(2, "Selecione o segmento"),
-  estado: z.string().trim().length(2, "Selecione o estado"),
-  cidade: z.string().trim().min(2, "Informe a cidade").max(80),
+  faixaInvestimento: z.enum(FAIXAS_INVESTIMENTO, {
+    errorMap: () => ({ message: "Selecione a faixa de investimento" }),
+  }),
+  linhasInteresse: z
+    .array(z.enum(LINHAS_CALCADOS))
+    .min(1, "Selecione pelo menos uma linha de calçados"),
+  estado: z
+    .string()
+    .trim()
+    .refine((value) => ESTADOS.some(({ uf }) => uf === value), "Selecione o estado"),
+  cidade: z.string().trim().min(2, "Selecione a cidade").max(80),
   nome: z.string().trim().min(2, "Informe seu nome").max(100),
   loja: z.string().trim().min(2, "Informe o nome da empresa").max(120),
   cnpj: z.string().trim().length(18, "CNPJ inválido"),
@@ -106,10 +105,18 @@ const schema = z.object({
   consent: z.literal(true, { errorMap: () => ({ message: "Você precisa aceitar a política" }) }),
 });
 
-export function LeadForm() {
+export function LeadForm({
+  embedded = false,
+  sectionId = "cadastro",
+}: {
+  embedded?: boolean;
+  sectionId?: string;
+}) {
   const utms = useUtms();
   const [form, setForm] = useState({
     segmento: "",
+    faixaInvestimento: "",
+    linhasInteresse: [] as string[],
     estado: "",
     cidade: "",
     nome: "",
@@ -121,11 +128,58 @@ export function LeadForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [cidades, setCidades] = useState<string[]>([]);
+  const [cidadesLoading, setCidadesLoading] = useState(false);
+  const [cidadesError, setCidadesError] = useState("");
   const utmEntries = useMemo(() => Object.entries(utms), [utms]);
 
   const set = (key: string, value: string | boolean) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
+
+  const toggleLinhaInteresse = (linha: string) => {
+    setForm((current) => ({
+      ...current,
+      linhasInteresse: current.linhasInteresse.includes(linha)
+        ? current.linhasInteresse.filter((item) => item !== linha)
+        : [...current.linhasInteresse, linha],
+    }));
+    setErrors((current) => ({ ...current, linhasInteresse: "" }));
+  };
+
+  useEffect(() => {
+    const estado = ESTADOS.find(({ uf }) => uf === form.estado);
+    setCidades([]);
+    setCidadesError("");
+
+    if (!estado) {
+      setCidadesLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setCidadesLoading(true);
+
+    fetch(
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado.codigoIbge}/municipios?orderBy=nome`,
+      { signal: controller.signal },
+    )
+      .then((response) => {
+        if (!response.ok) throw new Error("Falha ao consultar municípios");
+        return response.json() as Promise<Array<{ nome: string }>>;
+      })
+      .then((municipios) => setCidades(municipios.map(({ nome }) => nome)))
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setCidadesError("Não foi possível carregar as cidades. Tente novamente.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCidadesLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [form.estado]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -137,33 +191,74 @@ export function LeadForm() {
       return;
     }
 
+    if (!cidades.includes(parsed.data.cidade)) {
+      setErrors({ cidade: "Selecione uma cidade válida" });
+      return;
+    }
+
     setErrors({});
+    setSubmitError("");
     setLoading(true);
-    // Integração original preservada: o projeto ainda simula o envio enquanto aguarda um webhook real.
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setLoading(false);
-    setSubmitted(true);
+
+    try {
+      await submitLeadToCrm({
+        data: {
+          phone: parsed.data.whatsapp.replace(/\D/g, ""),
+          name: parsed.data.nome,
+          document: parsed.data.cnpj.replace(/\D/g, ""),
+          city: parsed.data.cidade,
+          state: parsed.data.estado,
+          pipeline_stage: "Qualificado",
+          empresa: parsed.data.loja,
+          segmento: parsed.data.segmento,
+          faixa_investimento: parsed.data.faixaInvestimento,
+          linhas_interesse: parsed.data.linhasInteresse,
+        },
+      });
+
+      setSubmitted(true);
+      window.fbq?.("track", "Lead", {
+        content_name: "Cadastro de lojista",
+        content_category: parsed.data.segmento,
+      });
+    } catch (error) {
+      console.error("Erro ao enviar lead para o sistema de vendas:", error);
+      setSubmitError(
+        "Não foi possível enviar seus dados agora. Verifique sua conexão e tente novamente.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <section
-      id="cadastro"
-      className="relative overflow-hidden py-20 sm:py-28"
-      style={{ background: "var(--gradient-soft), #ffffff" }}
+      id={sectionId}
+      className={embedded ? "relative" : "relative overflow-hidden py-20 sm:py-28"}
+      style={embedded ? undefined : { background: "var(--gradient-soft), #ffffff" }}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-40 top-20 h-80 w-80 rounded-full blur-3xl"
+        className={`pointer-events-none absolute -left-40 top-20 h-80 w-80 rounded-full blur-3xl ${
+          embedded ? "hidden" : ""
+        }`}
         style={{ background: "oklch(0.71 0.19 45 / 0.18)" }}
       />
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-start gap-10 px-5 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
-        <div className="text-center lg:text-left">
-          <span className="eyebrow">Catálogo Gol</span>
+      <div
+        className={
+          embedded
+            ? "relative"
+            : "relative mx-auto grid max-w-7xl grid-cols-1 items-start gap-10 px-5 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14"
+        }
+      >
+        <div className={embedded ? "hidden" : "text-center lg:text-left"}>
+          <span className="eyebrow">Próximo passo</span>
           <h2 className="mt-3 text-3xl font-black leading-tight text-[#071E42] sm:text-4xl lg:text-5xl">
-            RECEBA NOSSO <span className="text-highlight">CATÁLOGO</span>
+            LEVE <span className="text-highlight">GRANDES MARCAS</span> PARA SUA LOJA
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-[#3f4a68] lg:mx-0">
-            Preencha seus dados e fale com um consultor Gol.
+            Conte um pouco sobre o seu negócio. Nossa equipe prepara o atendimento e apresenta o mix
+            mais adequado para seus clientes.
           </p>
 
           <div className="mt-8 space-y-3 text-left">
@@ -192,7 +287,9 @@ export function LeadForm() {
           <form
             onSubmit={onSubmit}
             noValidate
-            className="relative rounded-3xl border border-black/5 bg-white p-6 shadow-[0_30px_60px_-30px_rgba(7,30,66,0.35)] sm:p-8"
+            className={`relative rounded-3xl border border-black/5 bg-white shadow-[0_30px_60px_-30px_rgba(7,30,66,0.35)] ${
+              embedded ? "p-5 sm:p-6" : "p-6 sm:p-8"
+            }`}
           >
             {submitted ? (
               <div className="py-8 text-center">
@@ -231,30 +328,99 @@ export function LeadForm() {
                       </select>
                     </Field>
                   </div>
+                  <div className="sm:col-span-2">
+                    <Field label="Faixa de investimento" error={errors.faixaInvestimento}>
+                      <select
+                        className="input"
+                        name="faixaInvestimento"
+                        value={form.faixaInvestimento}
+                        onChange={(event) => set("faixaInvestimento", event.target.value)}
+                      >
+                        <option value="">Selecione uma faixa</option>
+                        {FAIXAS_INVESTIMENTO.map((faixa) => (
+                          <option key={faixa} value={faixa}>
+                            {faixa}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                  <fieldset className="sm:col-span-2">
+                    <legend className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#263055]">
+                      Linhas de calçados de maior interesse
+                    </legend>
+                    <div className="grid grid-cols-2 gap-2">
+                      {LINHAS_CALCADOS.map((linha) => (
+                        <label
+                          key={linha}
+                          className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                            form.linhasInteresse.includes(linha)
+                              ? "border-[#F37021] bg-[#F37021]/10 text-[#263055]"
+                              : "border-black/10 bg-white text-[#5b6784] hover:border-[#F37021]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            name="linhasInteresse"
+                            value={linha}
+                            checked={form.linhasInteresse.includes(linha)}
+                            onChange={() => toggleLinhaInteresse(linha)}
+                            className="h-4 w-4 accent-[#F37021]"
+                          />
+                          {linha}
+                        </label>
+                      ))}
+                    </div>
+                    {errors.linhasInteresse && (
+                      <span className="mt-1 block text-xs text-red-600">
+                        {errors.linhasInteresse}
+                      </span>
+                    )}
+                  </fieldset>
                   <Field label="Estado" error={errors.estado}>
                     <select
                       className="input"
                       name="estado"
                       value={form.estado}
-                      onChange={(event) => set("estado", event.target.value)}
+                      onChange={(event) => {
+                        const estado = event.target.value;
+                        setForm((current) => ({ ...current, estado, cidade: "" }));
+                        setErrors((current) => ({ ...current, estado: "", cidade: "" }));
+                      }}
+                      autoComplete="address-level1"
                     >
-                      <option value="">UF</option>
-                      {ESTADOS.map((uf) => (
+                      <option value="">Selecione</option>
+                      {ESTADOS.map(({ uf, nome }) => (
                         <option key={uf} value={uf}>
-                          {uf}
+                          {nome} ({uf})
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Cidade" error={errors.cidade}>
-                    <input
+                  <Field label="Cidade" error={errors.cidade || cidadesError}>
+                    <select
                       className="input"
                       name="cidade"
                       value={form.cidade}
                       onChange={(event) => set("cidade", event.target.value)}
-                      placeholder="Sua cidade"
+                      disabled={!form.estado || cidadesLoading || Boolean(cidadesError)}
                       autoComplete="address-level2"
-                    />
+                    >
+                      <option value="">
+                        {!form.estado
+                          ? "Selecione o estado primeiro"
+                          : cidadesLoading
+                            ? "Carregando cidades..."
+                            : cidadesError
+                              ? "Cidades indisponíveis"
+                              : "Selecione sua cidade"}
+                      </option>
+                      {cidades.map((cidade) => (
+                        <option key={cidade} value={cidade}>
+                          {cidade}
+                        </option>
+                      ))}
+                    </select>
                   </Field>
                   <Field label="Nome" error={errors.nome}>
                     <input
@@ -322,6 +488,11 @@ export function LeadForm() {
                   </span>
                 </label>
                 {errors.consent && <p className="mt-1 text-xs text-red-600">{errors.consent}</p>}
+                {submitError && (
+                  <p role="alert" className="mt-4 text-center text-sm font-medium text-red-600">
+                    {submitError}
+                  </p>
+                )}
 
                 <button
                   type="submit"
@@ -358,6 +529,11 @@ export function LeadForm() {
           box-shadow: 0 0 0 4px oklch(0.71 0.19 45 / 0.15);
         }
         .input::placeholder { color: #a5adbf; }
+        .input:disabled {
+          cursor: not-allowed;
+          background: #F8F8F6;
+          color: #9aa3b5;
+        }
       `}</style>
     </section>
   );

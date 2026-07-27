@@ -1,5 +1,5 @@
-import { ArrowRight, CheckCircle2, Headset, Layers, Sparkles, Truck } from "lucide-react";
-import heroImg from "@/assets/hero-composition.png";
+import { ArrowRight, Headset, Layers, Sparkles, Truck } from "lucide-react";
+import { LeadForm } from "./LeadForm";
 
 const benefits = [
   { icon: Layers, label: "Grandes marcas" },
@@ -12,7 +12,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative overflow-hidden pb-16 pt-28 sm:pb-24 sm:pt-36"
+      className="relative overflow-hidden pb-16 pt-28 sm:pb-24 sm:pt-36 lg:pt-52"
       style={{ background: "var(--gradient-soft), #ffffff" }}
     >
       <svg
@@ -27,17 +27,8 @@ export function Hero() {
         <circle cx="360" cy="360" r="220" stroke="#263055" strokeWidth="1" />
         <circle cx="360" cy="360" r="140" stroke="#263055" strokeWidth="1" />
       </svg>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-24 inset-x-0 h-48"
-        style={{
-          background:
-            "radial-gradient(60% 100% at 50% 0%, oklch(0.71 0.19 45 / 0.08), transparent 70%)",
-        }}
-      />
-
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1.05fr_1fr]">
-        <div className="anim-fade-up min-w-0 text-center lg:text-left">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:items-start">
+        <div className="anim-fade-up min-w-0 text-center lg:pt-6 lg:text-left">
           <span className="inline-flex max-w-full items-center justify-center gap-2 whitespace-normal rounded-full border border-[#263055]/15 bg-white px-3 py-1.5 text-center text-[9px] font-bold uppercase leading-relaxed tracking-[0.1em] text-[#263055] shadow-sm min-[390px]:text-[10px] sm:text-[11px] sm:tracking-[0.16em]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#F37021]" />
             Gol Distribuidora • Atacado para empresas
@@ -54,7 +45,13 @@ export function Hero() {
           </p>
 
           <div className="mt-7 flex justify-center lg:justify-start">
-            <a href="#cadastro" className="btn-cta w-full max-w-full sm:w-auto">
+            <a href="#cadastro-mobile" className="btn-cta w-full max-w-full sm:w-auto lg:hidden">
+              Quero receber o catálogo <ArrowRight size={18} />
+            </a>
+            <a
+              href="#cadastro"
+              className="btn-cta hidden w-full max-w-full sm:w-auto lg:inline-flex"
+            >
               Quero receber o catálogo <ArrowRight size={18} />
             </a>
           </div>
@@ -75,7 +72,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative hidden w-full lg:block">
           <div
             aria-hidden
             className="absolute inset-0 -z-10 blur-3xl"
@@ -84,54 +81,7 @@ export function Hero() {
                 "radial-gradient(60% 60% at 50% 40%, oklch(0.71 0.19 45 / 0.22), transparent 70%), radial-gradient(50% 50% at 30% 70%, oklch(0.32 0.09 265 / 0.18), transparent 70%)",
             }}
           />
-          <div className="relative mx-auto aspect-square w-full max-w-[560px]">
-            <img
-              src={heroImg}
-              alt="Calçados e acessórios do portfólio da GOL Distribuidora"
-              width={1200}
-              height={1200}
-              className="h-full w-full object-contain drop-shadow-[0_25px_35px_rgba(7,30,66,0.15)]"
-            />
-            <div className="glass-card floaty absolute left-2 top-6 hidden items-center gap-3 px-3 py-2.5 sm:flex">
-              <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#F37021]/15 text-[#F37021]">
-                <Layers size={16} />
-              </div>
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#263055]">
-                  Multimarcas
-                </div>
-                <div className="text-[11px] text-[#7A7A7A]">Grandes marcas</div>
-              </div>
-            </div>
-            <div
-              className="glass-card floaty absolute right-0 top-1/3 hidden items-center gap-3 px-3 py-2.5 sm:flex"
-              style={{ animationDelay: "1.2s" }}
-            >
-              <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#263055]/10 text-[#263055]">
-                <CheckCircle2 size={16} />
-              </div>
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#263055]">
-                  Atendimento B2B
-                </div>
-                <div className="text-[11px] text-[#7A7A7A]">Consultor comercial</div>
-              </div>
-            </div>
-            <div
-              className="glass-card floaty absolute bottom-4 left-4 hidden items-center gap-3 px-3 py-2.5 sm:flex"
-              style={{ animationDelay: "2.4s" }}
-            >
-              <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#F37021]/15 text-[#F37021]">
-                <Sparkles size={16} />
-              </div>
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#263055]">
-                  Categorias
-                </div>
-                <div className="text-[11px] text-[#7A7A7A]">Fem · Masc · Infantil</div>
-              </div>
-            </div>
-          </div>
+          <LeadForm embedded sectionId="cadastro" />
         </div>
       </div>
     </section>

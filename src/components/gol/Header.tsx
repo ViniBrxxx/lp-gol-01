@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 const links = [
+  { href: "#sobre", label: "A Gol" },
   { href: "#marcas", label: "Marcas" },
   { href: "#produtos", label: "Produtos" },
   { href: "#diferenciais", label: "Diferenciais" },
@@ -46,7 +47,10 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a href="#cadastro" className="btn-cta hidden text-sm sm:inline-flex">
+          <a href="#cadastro-mobile" className="btn-cta hidden text-sm sm:inline-flex lg:hidden">
+            Receber catálogo
+          </a>
+          <a href="#cadastro" className="btn-cta hidden text-sm lg:inline-flex">
             Receber catálogo
           </a>
           <button
@@ -72,7 +76,7 @@ export function Header() {
                 {l.label}
               </a>
             ))}
-            <a href="#cadastro" onClick={() => setOpen(false)} className="btn-cta mt-2">
+            <a href="#cadastro-mobile" onClick={() => setOpen(false)} className="btn-cta mt-2">
               Receber catálogo
             </a>
           </div>

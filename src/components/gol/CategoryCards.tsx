@@ -1,13 +1,33 @@
-import fem from "@/assets/cat-feminino.png";
-import masc from "@/assets/cat-masculino.png";
-import inf from "@/assets/cat-infantil.png";
-import sport from "@/assets/cat-chinelos.png";
+import fem from "@/assets/cat-feminino-vizzano.jpg";
+import masc from "@/assets/cat-masculino-cartago.webp";
+import inf from "@/assets/cat-infantil-molekinha.jpg";
+import sport from "@/assets/cat-esportivo-penalty.jpg";
 
 const categories = [
-  { title: "Feminino", desc: "Sandálias, casuais e outros modelos.", img: fem },
-  { title: "Masculino", desc: "Chinelos, sandálias e casuais.", img: masc },
-  { title: "Infantil", desc: "Linhas para diferentes idades.", img: inf },
-  { title: "Esportivo", desc: "Opções para ampliar seu mix.", img: sport },
+  {
+    title: "Feminino",
+    desc: "Sandálias Vizzano, casuais e outros modelos.",
+    img: fem,
+    alt: "Sandália feminina bege de salto bloco da Vizzano",
+  },
+  {
+    title: "Masculino",
+    desc: "Chinelos Cartago, sandálias e casuais.",
+    img: masc,
+    alt: "Chinelo masculino azul da Cartago",
+  },
+  {
+    title: "Infantil",
+    desc: "Sandálias Molekinha para diferentes idades.",
+    img: inf,
+    alt: "Sandália infantil branca e rosa da Molekinha",
+  },
+  {
+    title: "Esportivo",
+    desc: "Tênis Penalty para ampliar seu mix.",
+    img: sport,
+    alt: "Tênis esportivo branco e azul da Penalty",
+  },
 ];
 
 export function CategoryCards() {
@@ -35,7 +55,7 @@ export function CategoryCards() {
               <div className="relative flex h-44 items-center justify-center">
                 <img
                   src={category.img}
-                  alt={category.title}
+                  alt={category.alt}
                   loading="lazy"
                   width={800}
                   height={800}

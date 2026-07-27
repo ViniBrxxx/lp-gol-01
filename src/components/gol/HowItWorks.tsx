@@ -49,7 +49,7 @@ export function HowItWorks() {
                 <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#F8F8F6] text-[#263055] ring-1 ring-black/5">
                   <Icon size={22} className="text-[#F37021]" />
                 </div>
-                <span className="text-4xl font-black text-[#263055]/10">{n}</span>
+                <span className="text-4xl font-black text-[#F37021]">{n}</span>
               </div>
               <h3 className="mt-5 text-base font-black uppercase tracking-wide text-[#263055]">
                 {title}
