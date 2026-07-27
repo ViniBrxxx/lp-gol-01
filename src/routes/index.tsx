@@ -8,6 +8,7 @@ import { PositioningSection } from "@/components/gol/PositioningSection";
 import { HowItWorks } from "@/components/gol/HowItWorks";
 import { Footer } from "@/components/gol/Footer";
 import { LeadForm } from "@/components/gol/LeadForm";
+import { VslSection } from "@/components/gol/VslSection";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -62,6 +63,7 @@ function Index() {
     <main className="min-h-screen bg-white text-[#071E42]">
       <Header />
       <Hero />
+      <VslSection />
       <AboutCarousel />
       <BrandsSection />
       <CategoryCards />
