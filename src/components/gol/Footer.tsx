@@ -34,7 +34,12 @@ export function Footer() {
           </h4>
           <ul className="mt-4 space-y-2 text-sm">
             <li>
-              <a href="#" className="inline-flex items-center gap-2 hover:text-[#F37021]">
+              <a
+                href="https://www.instagram.com/gol.distribuidora/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 hover:text-[#F37021]"
+              >
                 <Instagram size={14} /> Instagram
               </a>
             </li>

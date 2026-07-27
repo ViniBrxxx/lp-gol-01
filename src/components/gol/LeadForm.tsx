@@ -221,6 +221,13 @@ export function LeadForm({
         content_name: "Cadastro de lojista",
         content_category: parsed.data.segmento,
       });
+
+      const whatsappMessage = encodeURIComponent(
+        `Olá! Sou ${parsed.data.nome}, da empresa ${parsed.data.loja}. Acabei de enviar meu cadastro pelo site da Gol Distribuidora e gostaria de falar com um consultor.`,
+      );
+      window.setTimeout(() => {
+        window.location.assign(`https://wa.me/558699840542?text=${whatsappMessage}`);
+      }, 700);
     } catch (error) {
       console.error("Erro ao enviar lead para o sistema de vendas:", error);
       setSubmitError(
@@ -298,7 +305,8 @@ export function LeadForm({
                 </div>
                 <h3 className="mt-4 text-xl font-black text-[#263055]">Dados recebidos!</h3>
                 <p className="mt-2 text-sm text-[#5b6784]">
-                  Nossa equipe comercial entrará em contato pelo WhatsApp informado.
+                  Cadastro enviado com sucesso. Estamos redirecionando você para o WhatsApp do
+                  consultor.
                 </p>
               </div>
             ) : (
