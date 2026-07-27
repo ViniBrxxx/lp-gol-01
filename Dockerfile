@@ -17,7 +17,8 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 
 COPY --from=builder /app/.output ./.output
+COPY server-entry.mjs ./server-entry.mjs
 
 EXPOSE 3000
 
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "server-entry.mjs"]
