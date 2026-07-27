@@ -63,11 +63,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-5 text-xs text-white/50 sm:flex-row sm:px-8">
           <p>© {new Date().getFullYear()} GOL Distribuidora. Todos os direitos reservados.</p>
-          <p>
-            Atendimento exclusivo para empresas com CNPJ.
-            <br />
-            CNPJ: 07.693.868/0001-63
-          </p>
+          <p>Atendimento exclusivo para empresas com CNPJ.</p>
         </div>
       </div>
     </footer>
