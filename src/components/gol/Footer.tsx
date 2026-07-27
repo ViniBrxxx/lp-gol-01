@@ -1,7 +1,7 @@
 import { Instagram, Mail } from "lucide-react";
 import { Logo } from "./Logo";
 
-const footerCnpj = "CNPJ: 00.000.000/0001-00";
+const footerCnpj = "CNPJ: 07.693.868/0001-63";
 
 export function Footer() {
   return (
