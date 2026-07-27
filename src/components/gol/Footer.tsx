@@ -1,6 +1,8 @@
 import { Instagram, Mail } from "lucide-react";
 import { Logo } from "./Logo";
 
+const footerCnpj = "CNPJ: 00.000.000/0001-00";
+
 export function Footer() {
   return (
     <footer style={{ background: "#071E42" }} className="text-white/80">
@@ -63,7 +65,10 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-5 text-xs text-white/50 sm:flex-row sm:px-8">
           <p>© {new Date().getFullYear()} GOL Distribuidora. Todos os direitos reservados.</p>
-          <p>Atendimento exclusivo para empresas com CNPJ.</p>
+          <div className="flex flex-col items-center gap-1 sm:items-end">
+            <p>{footerCnpj}</p>
+            <p>Atendimento exclusivo para empresas com CNPJ.</p>
+          </div>
         </div>
       </div>
     </footer>
