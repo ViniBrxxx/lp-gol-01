@@ -19,25 +19,7 @@ export function Footer() {
           </h4>
           <ul className="mt-4 space-y-2 text-sm">
             <li>
-              <a
-                href="https://www.golshopp.com.br/sobre-a-empresa-gol-shopp"
-                className="hover:text-[#F37021]"
-              >
-                Sobre a empresa
-              </a>
-            </li>
-            <li>
-              <a href="https://www.golshopp.com.br/calcados" className="hover:text-[#F37021]">
-                Calçados
-              </a>
-            </li>
-            <li>
-              <a href="https://www.golshopp.com.br/envio" className="hover:text-[#F37021]">
-                Envio
-              </a>
-            </li>
-            <li>
-              <a href="https://www.golshopp.com.br/privacidade" className="hover:text-[#F37021]">
+              <a href="#" className="hover:text-[#F37021]">
                 Política de Privacidade
               </a>
             </li>

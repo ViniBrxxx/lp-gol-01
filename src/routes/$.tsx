@@ -1,15 +1,16 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 /**
- * Catch-all for the old goldistribuidora.com Tray e-commerce store, which moved
- * to golshopp.com.br. Any path not explicitly handled by a real route on this
- * B2B landing page (only "/" today) 301s to the identical path on the new domain,
- * preserving the SEO equity of URLs still indexed from the old store.
+ * Catch-all for the old goldistribuidora.com Tray e-commerce store (now at
+ * golshopp.com.br, a B2C channel). This domain is B2B-only going forward, so
+ * any path not explicitly handled by a real route here (only "/" today) 301s
+ * to the landing page instead of the old B2C store, to capture that traffic
+ * as leads on this funnel.
  */
 export const Route = createFileRoute("/$")({
-  beforeLoad: ({ location }) => {
+  beforeLoad: () => {
     throw redirect({
-      href: `https://www.golshopp.com.br${location.href}`,
+      to: "/",
       statusCode: 301,
     });
   },
