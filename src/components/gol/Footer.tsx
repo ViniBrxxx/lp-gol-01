@@ -19,7 +19,25 @@ export function Footer() {
           </h4>
           <ul className="mt-4 space-y-2 text-sm">
             <li>
-              <a href="#" className="hover:text-[#F37021]">
+              <a
+                href="https://www.golshopp.com.br/sobre-a-empresa-gol-shopp"
+                className="hover:text-[#F37021]"
+              >
+                Sobre a empresa
+              </a>
+            </li>
+            <li>
+              <a href="https://www.golshopp.com.br/calcados" className="hover:text-[#F37021]">
+                Calçados
+              </a>
+            </li>
+            <li>
+              <a href="https://www.golshopp.com.br/envio" className="hover:text-[#F37021]">
+                Envio
+              </a>
+            </li>
+            <li>
+              <a href="https://www.golshopp.com.br/privacidade" className="hover:text-[#F37021]">
                 Política de Privacidade
               </a>
             </li>
@@ -64,10 +82,14 @@ export function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-5 text-xs text-white/50 sm:flex-row sm:px-8">
-          <p className="text-center sm:text-left">© {new Date().getFullYear()} GOL Distribuidora. Todos os direitos reservados.</p>
+          <p className="text-center sm:text-left">
+            © {new Date().getFullYear()} GOL Distribuidora. Todos os direitos reservados.
+          </p>
           <div className="flex w-full flex-col items-center gap-1 text-center text-white/90 sm:w-auto sm:items-end sm:text-right">
             <p className="text-[11px] font-medium sm:text-xs">{footerCnpj}</p>
-            <p className="max-w-[240px] leading-relaxed sm:max-w-none">Atendimento exclusivo para empresas com CNPJ.</p>
+            <p className="max-w-[240px] leading-relaxed sm:max-w-none">
+              Atendimento exclusivo para empresas com CNPJ.
+            </p>
           </div>
         </div>
       </div>
