@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const crmLeadSchema = z.object({
@@ -17,11 +18,26 @@ const crmLeadSchema = z.object({
     "Acima de R$ 20 mil",
   ]),
   linhas_interesse: z.array(z.enum(["Feminino", "Masculino", "Infantil", "Esportivo"])).min(1),
+  utm_source: z.string().max(500),
+  utm_medium: z.string().max(500),
+  utm_campaign: z.string().max(500),
+  utm_content: z.string().max(500),
+  utm_term: z.string().max(500),
+  fbclid: z.string().max(1000),
+  fbp: z.string().max(500),
+  fbc: z.string().max(1000),
+  landing_page_url: z.string().url().max(4000),
+  page_url: z.string().url().max(4000),
+  referrer: z.union([z.literal(""), z.string().url().max(4000)]),
+  user_agent: z.string().max(2000),
+  submitted_at: z.string().datetime(),
+  event_id: z.string().uuid(),
 });
 
 export const submitLeadToCrm = createServerFn({ method: "POST" })
   .validator(crmLeadSchema)
   .handler(async ({ data }) => {
+    const ipAddress = getRequestIP({ xForwardedFor: true }) || "";
     const response = await fetch(
       "https://newtracking-sales-sys.vercel.app/api/webhooks/leads/cmq0tkyiw0003dnk3jtdpcj6i",
       {
@@ -32,6 +48,7 @@ export const submitLeadToCrm = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           ...data,
+          ip_address: ipAddress,
           skip_meta_lead: "true",
         }),
       },

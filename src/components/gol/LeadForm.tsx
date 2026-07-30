@@ -13,6 +13,13 @@ const UTM_KEYS = [
 ] as const;
 type UtmKey = (typeof UTM_KEYS)[number];
 
+type AccessTracking = Record<UtmKey, string> & {
+  landing_page_url: string;
+  referrer: string;
+  fbp: string;
+  fbc: string;
+};
+
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
@@ -41,10 +48,23 @@ const ESTADOS = [
   { uf: "TO", nome: "Tocantins", codigoIbge: 17 },
 ] as const;
 
-function useUtms() {
-  const [utms, setUtms] = useState<Record<UtmKey, string>>(
-    () => Object.fromEntries(UTM_KEYS.map((key) => [key, ""])) as Record<UtmKey, string>,
-  );
+function getCookie(name: string) {
+  const prefix = `${name}=`;
+  const cookie = document.cookie
+    .split(";")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(prefix));
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : "";
+}
+
+function useAccessTracking() {
+  const [tracking, setTracking] = useState<AccessTracking>(() => ({
+    ...(Object.fromEntries(UTM_KEYS.map((key) => [key, ""])) as Record<UtmKey, string>),
+    landing_page_url: "",
+    referrer: "",
+    fbp: "",
+    fbc: "",
+  }));
 
   useEffect(() => {
     try {
@@ -56,15 +76,25 @@ function useUtms() {
         if (value) next[key] = value;
       });
       localStorage.setItem("gol_utms", JSON.stringify(next));
-      setUtms(
-        Object.fromEntries(UTM_KEYS.map((key) => [key, next[key] || ""])) as Record<UtmKey, string>,
-      );
+      const landingPageUrl = sessionStorage.getItem("gol_landing_page_url") || window.location.href;
+      sessionStorage.setItem("gol_landing_page_url", landingPageUrl);
+
+      setTracking({
+        ...(Object.fromEntries(UTM_KEYS.map((key) => [key, next[key] || ""])) as Record<
+          UtmKey,
+          string
+        >),
+        landing_page_url: landingPageUrl,
+        referrer: document.referrer,
+        fbp: getCookie("_fbp"),
+        fbc: getCookie("_fbc"),
+      });
     } catch {
       // A captura de campanha é opcional e não deve impedir o preenchimento do formulário.
     }
   }, []);
 
-  return utms;
+  return tracking;
 }
 
 function maskPhone(value: string) {
@@ -112,7 +142,7 @@ export function LeadForm({
   embedded?: boolean;
   sectionId?: string;
 }) {
-  const utms = useUtms();
+  const accessTracking = useAccessTracking();
   const [form, setForm] = useState({
     segmento: "",
     faixaInvestimento: "",
@@ -132,7 +162,10 @@ export function LeadForm({
   const [cidades, setCidades] = useState<string[]>([]);
   const [cidadesLoading, setCidadesLoading] = useState(false);
   const [cidadesError, setCidadesError] = useState("");
-  const utmEntries = useMemo(() => Object.entries(utms), [utms]);
+  const utmEntries = useMemo(
+    () => UTM_KEYS.map((key) => [key, accessTracking[key]] as const),
+    [accessTracking],
+  );
 
   const set = (key: string, value: string | boolean) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -201,6 +234,9 @@ export function LeadForm({
     setLoading(true);
 
     try {
+      const eventId = crypto.randomUUID();
+      const submittedAt = new Date().toISOString();
+
       await submitLeadToCrm({
         data: {
           phone: parsed.data.whatsapp.replace(/\D/g, ""),
@@ -213,17 +249,39 @@ export function LeadForm({
           segmento: parsed.data.segmento,
           faixa_investimento: parsed.data.faixaInvestimento,
           linhas_interesse: parsed.data.linhasInteresse,
+          ...accessTracking,
+          page_url: window.location.href,
+          user_agent: navigator.userAgent,
+          submitted_at: submittedAt,
+          event_id: eventId,
         },
       });
 
       setSubmitted(true);
-      window.fbq?.("track", "Lead", {
-        content_name: "Cadastro de lojista",
-        content_category: parsed.data.segmento,
-      });
+      window.fbq?.(
+        "track",
+        "Lead",
+        {
+          content_name: "Cadastro de lojista",
+          content_category: parsed.data.segmento,
+        },
+        { eventID: eventId },
+      );
 
       const whatsappMessage = encodeURIComponent(
-        `Olá! Sou ${parsed.data.nome}, da empresa ${parsed.data.loja}. Acabei de enviar meu cadastro pelo site da Gol Distribuidora e gostaria de falar com um consultor.`,
+        [
+          "Olá! Acabei de enviar meu cadastro pelo site da Gol Distribuidora e gostaria de falar com um consultor.",
+          "",
+          "*Dados do cadastro:*",
+          `Nome: ${parsed.data.nome}`,
+          `Empresa: ${parsed.data.loja}`,
+          `CNPJ: ${parsed.data.cnpj}`,
+          `WhatsApp: ${parsed.data.whatsapp}`,
+          `Segmento: ${parsed.data.segmento}`,
+          `Faixa de investimento: ${parsed.data.faixaInvestimento}`,
+          `Linhas de interesse: ${parsed.data.linhasInteresse.join(", ")}`,
+          `Localização: ${parsed.data.cidade}/${parsed.data.estado}`,
+        ].join("\n"),
       );
       window.setTimeout(() => {
         window.location.assign(`https://wa.me/558699840542?text=${whatsappMessage}`);
