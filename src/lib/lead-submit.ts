@@ -30,7 +30,10 @@ export const submitLeadToCrm = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          skip_meta_lead: "true",
+        }),
       },
     );
 
