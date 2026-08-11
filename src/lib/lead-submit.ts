@@ -49,7 +49,7 @@ export const submitLeadToCrm = createServerFn({ method: "POST" })
         body: JSON.stringify({
           ...data,
           ip_address: ipAddress,
-          skip_meta_lead: "true",
+          skip_meta_lead: "false",
         }),
       },
     );
