@@ -3,6 +3,7 @@ import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { formatCrmPayload } from "./src/crm-payload.js";
 
 const WEBHOOK_TARGETS = [
   {
@@ -18,11 +19,7 @@ const WEBHOOK_TARGETS = [
     url:
       process.env.CRM_WEBHOOK_URL ||
       "https://crm.fonilgroup.com.br/api/webhooks/leads/cmq0tkyiw0003dnk3jtdpcj6i",
-    formatPayload: (payload) => ({
-      phone: String(payload.phone || "").replace(/\D/g, ""),
-      name: String(payload.name || "").trim(),
-      document: String(payload.cnpj || "").replace(/\D/g, ""),
-    }),
+    formatPayload: formatCrmPayload,
   },
 ];
 

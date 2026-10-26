@@ -1,16 +1,4 @@
-function getAttribution() {
-  const params = new URLSearchParams(window.location.search);
-
-  return {
-    utm_source: params.get("utm_source") || "",
-    utm_medium: params.get("utm_medium") || "",
-    utm_campaign: params.get("utm_campaign") || "",
-    utm_content: params.get("utm_content") || "",
-    utm_term: params.get("utm_term") || "",
-    fbclid: params.get("fbclid") || "",
-    gclid: params.get("gclid") || "",
-  };
-}
+import { getAttribution } from "./attribution.js";
 
 function getCookie(name) {
   const prefix = `${name}=`;
@@ -32,7 +20,7 @@ export async function submitLead(formData) {
     page_url: window.location.href,
     referrer: document.referrer,
     submitted_at: new Date().toISOString(),
-    ...getAttribution(),
+    ...getAttribution(window.location.search),
     _fbc: getCookie("_fbc"),
     _fbp: getCookie("_fbp"),
   };
