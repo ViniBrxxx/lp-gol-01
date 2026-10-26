@@ -25,8 +25,8 @@ test("LP sends answered fields and all supplied UTMs without quiz observations",
   assert.equal(result.utm_campaign, "Marcas Gol");
   assert.equal(result.fbp, "fb.1.cookie");
   assert.equal(result.fbc, "fb.1.click");
-  assert.equal(result.landing_url, "https://example.com/?utm_source=ig");
-  for (const key of ["notes", "observations", "email", "city", "state", "unrelated", "_fbc", "_fbp", "page_url", "referrer", "event_id"]) {
+  assert.equal(result.event_source_url, "https://example.com/?utm_source=ig");
+  for (const key of ["notes", "observations", "email", "city", "state", "unrelated", "_fbc", "_fbp", "page_url", "landing_url", "referrer", "event_id"]) {
     assert.equal(key in result, false);
   }
 });
@@ -70,11 +70,25 @@ test("form forwards attribution and fires Meta Lead only after successful submis
   assert.equal(crm.fbp, "fb.1.test");
   assert.equal(events.length, 1);
   assert.equal(events[0][3].eventID, requests[0].payload.event_id);
-  assert.equal(crm.landing_url, requests[0].payload.page_url);
+  assert.equal(crm.event_source_url, requests[0].payload.page_url);
   assert.equal(requests[0].payload._fbp, "fb.1.test");
   assert.equal("_fbp" in crm, false);
   assert.equal("page_url" in crm, false);
   globalThis.fetch.mock.mockImplementation(async () => ({ ok: false, json: async () => ({ ok: false }) }));
   await assert.rejects(submitLead(form));
   assert.equal(events.length, 1);
+});
+
+test("campaign link preserves the complete URL and never uses the rejected aliases", () => {
+  const url = "https://p2.goldistribuidora.com.br/?utm_source=ig&utm_medium=paid_social" +
+    "&utm_campaign=Marcas%20Gol&campaign_id=123&adset_id=456&ad_id=789#cadastro";
+  const result = formatCrmPayload({
+    name: "Teste", phone: "00000000000", cnpj: "00000000000000",
+    page_url: url, landing_url: "https://example.com/old", referrer: "https://example.com/",
+  });
+  assert.equal(result.event_source_url, url);
+  assert.equal("landing_url" in result, false);
+  assert.equal("page_url" in result, false);
+  assert.equal("referrer" in result, false);
+  assert.equal("notes" in result, false);
 });

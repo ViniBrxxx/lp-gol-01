@@ -13,7 +13,7 @@ export function formatCrmPayload(payload) {
   // The CRM treats unknown top-level fields as observations. Only send its
   // campaign field names. Referrer and event_id remain in the Supabase payload.
   const campaignFields = {
-    landing_url: payload.page_url,
+    event_source_url: payload.page_url,
     fbc: payload._fbc,
     fbp: payload._fbp,
   };
