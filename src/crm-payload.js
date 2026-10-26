@@ -10,14 +10,16 @@ export function formatCrmPayload(payload) {
 
   // This LP only collects name, phone and CNPJ. Campaign data belongs in
   // dedicated fields; quiz answers/notes must not be generated for this form.
-  for (const key of ["page_url", "referrer", "event_id", "_fbc", "_fbp"]) {
-    if (typeof payload[key] === "string" && payload[key].trim()) {
-      result[key] = payload[key];
-    }
+  // The CRM treats unknown top-level fields as observations. Only send its
+  // campaign field names. Referrer and event_id remain in the Supabase payload.
+  const campaignFields = {
+    landing_url: payload.page_url,
+    fbc: payload._fbc,
+    fbp: payload._fbp,
+  };
+  for (const [key, value] of Object.entries(campaignFields)) {
+    if (typeof value === "string" && value.trim()) result[key] = value;
   }
-  // Include unprefixed cookie aliases for CRM attribution mapping.
-  if (result._fbc) result.fbc = result._fbc;
-  if (result._fbp) result.fbp = result._fbp;
 
   return result;
 }
